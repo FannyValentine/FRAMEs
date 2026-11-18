@@ -1,6 +1,6 @@
 // lib/widgets/mini_player.dart
 // ignore_for_file: dead_code
-
+import '../widgets/cover_image.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:phosphor_icons/phosphor_icons.dart';
 import 'package:provider/provider.dart';
@@ -56,23 +56,11 @@ class _MiniPlayerState extends State<MiniPlayer> {
                 // Обложка трека — обёрнута в ClipRRect
                 ClipRRect(
                   borderRadius: BorderRadius.circular(6),
-                  child: Image.asset(
-                          track.imageUrl,
+                  child: CoverImage(
+                          url: track.imageUrl,
                           width: 44,
                           height: 44,
                           fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) => Container(
-                            width: 44,
-                            height: 44,
-                            color: Colors.grey[800],
-                            child: const Center(
-                              child: Icon(
-                                PhosphorIconsRegular.image,
-                                size: 20,
-                                color: Colors.white54,
-                              ),
-                            ),
-                          ),
                         ),
                 ),
                 const SizedBox(width: 12),
@@ -129,6 +117,10 @@ class _MiniPlayerState extends State<MiniPlayer> {
                     size: 40,
                   ),
                 ),
+                IconButton(
+                onPressed: () => context.read<PlayerProvider>().playNext(),
+                icon: const Icon(PhosphorIconsRegular.skipForward, color: AppTheme.textPrimary, size: 24),
+              ),
               ],
             ),
 

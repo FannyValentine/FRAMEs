@@ -1,17 +1,25 @@
 // lib/screens/home_screen.dart
 import 'package:material_ui/material_ui.dart';
 import 'package:phosphor_icons/phosphor_icons.dart';
-import '../theme/app_theme.dart';
-import '../widgets/soundtrack_card.dart';
-import '../providers/player_provider.dart';
 import 'package:provider/provider.dart';
+import '../providers/player_provider.dart';
+import '../theme/app_theme.dart';
+import '../widgets/track_card.dart';
 
-class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({Key? key}) : super(key: key);
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  // Переменная для отслеживания активной верхней кнопки
+  int _selectedTopIndex = 0;
 
   @override
   Widget build(BuildContext context) {
-    final allSoundtracks = context.watch<PlayerProvider>().allSoundtracks;
+    final allTracks = context.watch<PlayerProvider>().allTracks;
 
     return Scaffold(
       backgroundColor: AppTheme.background,
@@ -40,16 +48,14 @@ class HomeScreen extends StatelessWidget {
               ),
               const SizedBox(height: 24),
 
-              // --- Верхние кнопки ---
+              // --- Верхние кнопки (теперь интерактивные) ---
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  _buildTopButton(context, 'Discover', true,
-                      PhosphorIconsRegular.compass),
-                  _buildTopButton(context, 'Browse', false,
-                      PhosphorIconsRegular.squaresFour),
-                  _buildTopIcon(PhosphorIconsRegular.waveform, 'Listening room'),
-                  _buildTopIcon(PhosphorIconsRegular.filmStrip, 'Film'),
+                  _buildTopButton(context, 'Discover', 0, PhosphorIconsRegular.compass),
+                  _buildTopButton(context, 'Browse', 1, PhosphorIconsRegular.squaresFour),
+                  _buildTopIcon(context, PhosphorIconsRegular.waveform, 'Listening room', 2),
+                  _buildTopIcon(context, PhosphorIconsRegular.filmStrip, 'Film', 3),
                 ],
               ),
               const SizedBox(height: 32),
@@ -117,14 +123,14 @@ class HomeScreen extends StatelessWidget {
                 height: 280,
                 child: ListView.builder(
                   scrollDirection: Axis.horizontal,
-                  itemCount: allSoundtracks.length,
+                  itemCount: allTracks.length,
                   itemBuilder: (context, index) {
                     return Padding(
                       padding: const EdgeInsets.only(right: 16.0),
                       child: SizedBox(
                         width: 150,
-                        child: SoundtrackCard(
-                          soundtrack: allSoundtracks[index],
+                        child: TrackCard(
+                          track: allTracks[index],
                         ),
                       ),
                     );
@@ -133,7 +139,7 @@ class HomeScreen extends StatelessWidget {
               ),
               const SizedBox(height: 40),
 
-              // --- Секция "Find your feeling" (Заглушка с градиентом) ---
+              // --- Секция "Find your feeling" ---
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -152,10 +158,9 @@ class HomeScreen extends StatelessWidget {
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(12),
                   image: const DecorationImage(
-                    image: AssetImage('assets/images/dune.jpg'), // Используем постер как фон
+                    image: AssetImage('assets/images/dune.jpg'),
                     fit: BoxFit.cover,
-                    colorFilter: ColorFilter.mode(
-                        Colors.black54, BlendMode.darken),
+                    colorFilter: ColorFilter.mode(Colors.black54, BlendMode.darken),
                   ),
                 ),
                 padding: const EdgeInsets.all(16),
@@ -174,7 +179,7 @@ class HomeScreen extends StatelessWidget {
                   ],
                 ),
               ),
-              const SizedBox(height: 120), // Отступ под мини-плеер
+              const SizedBox(height: 120),
             ],
           ),
         ),
@@ -182,36 +187,45 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildTopButton(
-      BuildContext context, String text, bool isActive, IconData icon) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        color: isActive ? AppTheme.accent.withOpacity(0.2) : Colors.transparent,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Row(
-        children: [
-          Icon(icon,
-              color: isActive ? AppTheme.accent : AppTheme.textPrimary,
-              size: 18),
-          const SizedBox(width: 8),
-          Text(text,
-              style: TextStyle(
-                  color: isActive ? AppTheme.accent : AppTheme.textPrimary)),
-        ],
+  Widget _buildTopButton(BuildContext context, String text, int index, IconData icon) {
+    final isActive = _selectedTopIndex == index;
+    return GestureDetector(
+      onTap: () => setState(() => _selectedTopIndex = index),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: isActive ? AppTheme.accent.withOpacity(0.2) : Colors.transparent,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Row(
+          children: [
+            Icon(icon,
+                color: isActive ? AppTheme.accent : AppTheme.textPrimary,
+                size: 18),
+            const SizedBox(width: 8),
+            Text(text,
+                style: TextStyle(
+                    color: isActive ? AppTheme.accent : AppTheme.textPrimary)),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildTopIcon(IconData icon, String label) {
-    return Column(
-      children: [
-        Icon(icon, color: AppTheme.textPrimary),
-        const SizedBox(height: 4),
-        Text(label,
-            style: const TextStyle(fontSize: 10, color: AppTheme.textSecondary)),
-      ],
+  Widget _buildTopIcon(BuildContext context, IconData icon, String label, int index) {
+    final isActive = _selectedTopIndex == index;
+    return GestureDetector(
+      onTap: () => setState(() => _selectedTopIndex = index),
+      child: Column(
+        children: [
+          Icon(icon, color: isActive ? AppTheme.accent : AppTheme.textPrimary),
+          const SizedBox(height: 4),
+          Text(label,
+              style: TextStyle(
+                  fontSize: 10,
+                  color: isActive ? AppTheme.accent : AppTheme.textSecondary)),
+        ],
+      ),
     );
   }
 }

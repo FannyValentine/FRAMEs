@@ -5,6 +5,8 @@ import 'package:provider/provider.dart';
 import '../models/soundtrack.dart';
 import '../providers/player_provider.dart';
 import '../theme/app_theme.dart';
+import '../widgets/cover_image.dart';
+import '../widgets/track_card.dart';
 
 class SoundtrackCard extends StatelessWidget {
   final Soundtrack soundtrack;
@@ -27,16 +29,10 @@ class SoundtrackCard extends StatelessWidget {
             child: ClipRRect(
               borderRadius: BorderRadius.circular(8),
               child: soundtrack.imageUrl.isNotEmpty
-                  ? Image.asset(
-                      soundtrack.imageUrl,
+                  ? CoverImage(
+                      url:soundtrack.imageUrl,
                       fit: BoxFit.cover,
                       width: double.infinity,
-                      errorBuilder: (context, error, stackTrace) => Container(
-                        color: Colors.grey[800],
-                        child: const Center(
-                          child: Icon(PhosphorIconsRegular.image, color: Colors.white54),
-                        ),
-                      ),
                     )
                   : Container(
                       color: Colors.grey[800],

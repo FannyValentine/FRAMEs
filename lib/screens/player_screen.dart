@@ -6,7 +6,7 @@ import 'package:phosphor_icons/phosphor_icons.dart';
 import 'package:provider/provider.dart';
 import '../providers/player_provider.dart';
 import '../theme/app_theme.dart';
-
+import '../widgets/cover_image.dart';
 class PlayerScreen extends StatelessWidget {
   const PlayerScreen({super.key});
 
@@ -123,15 +123,9 @@ class PlayerScreen extends StatelessWidget {
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(16),
                 child: SizedBox.expand(
-                  child: Image.asset(
-                          track.imageUrl,
-                          fit: BoxFit.cover, // 👈 заполняет всё, обрезая края
-                          errorBuilder: (_, _, _) => Container(
-                            color: Colors.grey[800],
-                            child: const Center(
-                              child: Icon(PhosphorIconsRegular.image, size: 80, color: Colors.white54),
-                            ),
-                          ),
+                  child: CoverImage(
+                          url: track.imageUrl,
+                          fit: BoxFit.cover,
                         ),
                 ),
               ),
@@ -185,6 +179,14 @@ class PlayerScreen extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 const Icon(PhosphorIconsRegular.shuffle, color: AppTheme.textSecondary, size: 24),
+                IconButton(
+                  icon: const Icon(PhosphorIconsRegular.skipBack, size: 32),
+                  onPressed: () => context.read<PlayerProvider>().playPrevious(), // 👈
+                ),
+                IconButton(
+                  icon: const Icon(PhosphorIconsRegular.skipForward, size: 32),
+                  onPressed: () => context.read<PlayerProvider>().playNext(), // 👈
+                ),
                 IconButton(
                   icon: const Icon(PhosphorIconsRegular.skipBack, size: 32),
                   onPressed: () {},

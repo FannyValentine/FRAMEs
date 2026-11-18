@@ -1,11 +1,21 @@
-// lib/data/mock_data.dart
 import '../models/soundtrack.dart';
 
 class MockData {
   // ============================================================
   // ТРЕКИ (Tracks)
   // ============================================================
-
+  static List<Track> get allTracks => [
+      spiritedAwaySoundtrack,
+      interstellarSoundtrack,
+      duneSoundtrack,
+      grandBudapestSoundtrack,
+      mulanSoundtrack,
+      cowboyBebopSoundtrack,
+      fantasiaSoundtrack,
+      savingPrivateRyanSoundtrack,
+      spiritedAwayAltSoundtrack,
+      grandBudapestAltSoundtrack,
+    ].expand((soundtrack) => soundtrack.tracks).toList();
   // --- Spirited Away (Joe Hisaishi) ---
   static final Track oneSummersDay = Track(
     id: 't1',

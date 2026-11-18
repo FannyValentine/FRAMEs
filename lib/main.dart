@@ -1,19 +1,25 @@
 // lib/main.dart
+import 'package:flutter_application_1/screens/auth_screen.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:phosphor_icons/phosphor_icons.dart';
 import 'package:provider/provider.dart';
 import 'package:just_audio_background/just_audio_background.dart';
-
 import 'providers/player_provider.dart';
 import 'theme/app_theme.dart';
 import 'screens/home_screen.dart';
 import 'screens/browse_screen.dart';
 import 'screens/saved_soundtracks_screen.dart';
 import 'widgets/mini_player.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'screens/favorites_screen.dart';
+import 'screens/recently_played_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
+  await Supabase.initialize(
+      url: 'https://nypsesphfblgsvxyigoo.supabase.co',
+      publishableKey: 'sb_publishable_cOrbdP1LtILm3EiMMHGYtg_iEUHPQGY',
+  );
   // Инициализация фонового аудио
   await JustAudioBackground.init(
     androidNotificationChannelId: 'com.example.frame.channel.audio',
@@ -39,9 +45,10 @@ class FrameApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: AppTheme.darkTheme,
       localizationsDelegates: GlobalMaterialLocalizations.delegates,
-      home: const MainWrapper(),
+      home: const AuthGate(),
     );
   }
+  
 }
 
 class MainWrapper extends StatefulWidget {
@@ -111,16 +118,24 @@ class _MainWrapperState extends State<MainWrapper> {
     );
   }
 }
+class AuthGate extends StatelessWidget {
+  const AuthGate({super.key});
 
-// Заглушки
-class FavoritesScreen extends StatelessWidget {
-  const FavoritesScreen({super.key});
   @override
-  Widget build(BuildContext context) => const Center(child: Text('Favorites Screen'));
-}
-
-class RecentlyPlayedScreen extends StatelessWidget {
-  const RecentlyPlayedScreen({super.key});
-  @override
-  Widget build(BuildContext context) => const Center(child: Text('Recently Played Screen'));
+  Widget build(BuildContext context) {
+    return StreamBuilder<AuthState>(
+      stream: Supabase.instance.client.auth.onAuthStateChange,
+      builder: (context, snapshot) {
+        // Пока идёт начальная загрузка сессии
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(body: Center(child: CircularProgressIndicator()));
+        }
+        final session = snapshot.data?.session;
+        if (session != null) {
+          return const MainWrapper(); // Ваш основной экран
+        }
+        return const AuthScreen();
+      },
+    );
+  }
 }

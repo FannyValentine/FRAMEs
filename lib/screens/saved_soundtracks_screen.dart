@@ -5,7 +5,7 @@ import 'package:provider/provider.dart';
 import '../models/soundtrack.dart';
 import '../providers/player_provider.dart';
 import '../theme/app_theme.dart';
-import '../widgets/soundtrack_card.dart';
+import '../widgets/track_card.dart';
 
 class SavedSoundtracksScreen extends StatefulWidget {
   const SavedSoundtracksScreen({super.key});
@@ -19,8 +19,8 @@ class _SavedSoundtracksScreenState extends State<SavedSoundtracksScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final savedSoundtracks = context.watch<PlayerProvider>().allSoundtracks;
-    final filteredSoundtracks = savedSoundtracks.where((s) {
+    final savedTracks = context.watch<PlayerProvider>().savedTracks;
+    final filteredSoundtracks = savedTracks.where((s) {
       if (_selectedFilter == null) return true;
       return s.world == _selectedFilter;
     }).toList();
@@ -86,7 +86,7 @@ class _SavedSoundtracksScreenState extends State<SavedSoundtracksScreen> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Your worlds, ready to return to. ${savedSoundtracks.length} soundtracks saved.',
+                    'Your worlds, ready to return to. ${savedTracks.length} soundtracks saved.',
                     style: const TextStyle(
                       color: AppTheme.textSecondary,
                       fontSize: 14,
@@ -168,7 +168,7 @@ class _SavedSoundtracksScreenState extends State<SavedSoundtracksScreen> {
               ),
               delegate: SliverChildBuilderDelegate(
                 (context, index) =>
-                    SoundtrackCard(soundtrack: filteredSoundtracks[index]),
+                    TrackCard(track: filteredSoundtracks[index]),
                 childCount: filteredSoundtracks.length,
               ),
             ),

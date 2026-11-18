@@ -41,6 +41,7 @@ dependencies:
   just_audio: ^0.10.6
   just_audio_background: ^0.0.1-beta.17
   just_audio_windows: ^0.2.3
+  supabase_flutter: ^2.0.0
 
   material_ui: any
 dev_dependencies:

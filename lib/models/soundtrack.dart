@@ -15,6 +15,7 @@ class Track {
   final String artist;
   final String albumTitle;
   final Duration? duration;
+  final SoundtrackWorld world;
   final String imageUrl;
   final String audioUrl;
   final bool isFavorite;
@@ -28,6 +29,7 @@ class Track {
     this.duration,
     required this.imageUrl,
     required this.audioUrl,
+    this.world = SoundtrackWorld.film,
     this.isFavorite = false,
     this.isSaved = false,
   });
@@ -42,23 +44,30 @@ class Track {
 
   /// Метод для обновления состояния (например, когда пользователь нажимает на сердечко)
   Track copyWith({
+    String? id,
+    String? title,
+    String? artist,
+    String? albumTitle,
     Duration? duration,
+    String? imageUrl,
+    String? audioUrl,
+    SoundtrackWorld? world,
     bool? isFavorite,
     bool? isSaved,
   }) {
     return Track(
-      id: id,
-      title: title,
-      artist: artist,
-      albumTitle: albumTitle,
+      id: id ?? this.id,
+      title: title ?? this.title,
+      artist: artist ?? this.artist,
+      albumTitle: albumTitle ?? this.albumTitle,
       duration: duration ?? this.duration,
-      imageUrl: imageUrl,
-      audioUrl: audioUrl,
+      imageUrl: imageUrl ?? this.imageUrl,
+      audioUrl: audioUrl ?? this.audioUrl,
+      world: world ?? this.world,
       isFavorite: isFavorite ?? this.isFavorite,
       isSaved: isSaved ?? this.isSaved,
     );
   }
-
   /// Фабричный метод для создания объекта из JSON (пригодится при подключении к API)
   factory Track.fromJson(Map<String, dynamic> json) {
     return Track(
