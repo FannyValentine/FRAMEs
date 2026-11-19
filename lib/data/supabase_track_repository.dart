@@ -1,7 +1,6 @@
 // lib/data/supabase_track_repository.dart
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/soundtrack.dart';
-
 class SupabaseTrackRepository {
   final SupabaseClient _client = Supabase.instance.client;
   static const String _tableName = 'tracks';
@@ -95,17 +94,18 @@ class SupabaseTrackRepository {
   // ============================================================
 
   Track _mapToTrack(Map<String, dynamic> json) {
-    return Track(
-      id: json['id'].toString(),
-      title: json['title'] as String? ?? 'Без названия',
-      artist: json['artist'] as String? ?? 'Неизвестный композитор',
-      albumTitle: json['album_title'] as String? ?? 'Без фильма',
-      duration: null,
-      imageUrl: json['cover_url'] as String? ?? '',
-      audioUrl: json['audio_url'] as String,
-      world: _parseWorld(json['world'] as String?),
-    );
-  }
+  return Track(
+    id: json['id'].toString(),
+    title: json['title'] as String? ?? 'Без названия',
+    artist: json['artist'] as String? ?? 'Неизвестный композитор',
+    albumTitle: json['album_title'] as String? ?? 'Без фильма',
+    duration: null,
+    imageUrl: json['cover_url'] as String? ?? '',
+    audioUrl: json['audio_url'] as String,
+    world: _parseWorld(json['world'] as String?),
+    genre: json['genre'] as String?,
+  );
+}
 
   SoundtrackWorld _parseWorld(String? value) {
     switch (value) {

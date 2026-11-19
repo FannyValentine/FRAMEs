@@ -1,14 +1,12 @@
 // lib/screens/browse_screen.dart
-import 'dart:async';
 import 'package:material_ui/material_ui.dart';
-import 'package:phosphor_icons/phosphor_icons.dart';
 import 'package:provider/provider.dart';
 import '../data/mock_data.dart';
-import '../data/supabase_track_repository.dart';
 import '../models/soundtrack.dart';
 import '../providers/player_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/track_card.dart';
+import '../widgets/top_navigation_bar.dart';
 
 class BrowseScreen extends StatefulWidget {
   const BrowseScreen({Key? key}) : super(key: key);
@@ -16,81 +14,57 @@ class BrowseScreen extends StatefulWidget {
   @override
   State<BrowseScreen> createState() => _BrowseScreenState();
 }
+List<String> _getAllGenres(PlayerProvider provider) {
+  // Собираем уникальные жанры из всех загруженных треков
+  final genres = provider.allTracks
+      .map((track) => track.genre)
+      .whereType<String>() // отбрасываем null
+      .toSet()             // убираем дубликаты
+      .toList();
 
+  // Если по какой-то причине список пуст (например, треки ещё не загрузились),
+  // возвращаем жанры по умолчанию, чтобы UI не сломался.
+  if (genres.isEmpty) {
+    return [
+      'Horus & Orchestra',
+      'Symphonic & Score',
+      'Ambient & Atmospheric',
+      'Electronic & Synth',
+      'Jazz & Blues',
+      'Piano & Minimal',
+      'Adventure & Epic',
+      'Folk & Acoustic',
+    ];
+  }
+
+  return genres;
+}
 class _BrowseScreenState extends State<BrowseScreen> {
-  // Текущий выбранный мир (null = "All worlds")
   SoundtrackWorld? _selectedWorld;
-  bool _easterEggTriggered = false;
-  // --- Поиск ---
   final TextEditingController _searchController = TextEditingController();
-  final SupabaseTrackRepository _repo = SupabaseTrackRepository();
-  Timer? _debounce;
-
-  String _query = '';
-  List<Track>? _searchResults; // null = режим "без поиска"
-  bool _isSearching = false;
-  String? _searchError;
+  bool _easterEggTriggered = false;
+  List<String> _shuffledGenres = [];
 
   @override
-  void dispose() {
-    _debounce?.cancel();
-    _searchController.dispose();
-    super.dispose();
-  }
-  
-  void _onSearchChanged(String value) {
-    setState(() => _query = value);
-    _checkEasterEgg(value);
-    _debounce?.cancel();
-
-    final trimmed = value.trim();
-    if (trimmed.isEmpty) {
-      setState(() {
-        _easterEggTriggered = false;
-        _searchResults = null;
-        _isSearching = false;
-        _searchError = null;
-      });
-      return;
-    }
-    // Debounce 350 мс, чтобы не спамить сервер на каждый символ
-    _debounce = Timer(const Duration(milliseconds: 350), () {
-      _runSearch(trimmed);
-    });
+  void initState() {
+  super.initState();
   }
 
-  Future<void> _runSearch(String query) async {
-    setState(() {
-      _isSearching = true;
-      _searchError = null;
-    });
-
-    try {
-      final results = await _repo.searchTracks(query);
-      if (!mounted) return;
-      // Защита от гонок: если запрос успел устареть — игнорируем
-      if (_searchController.text.trim() != query) return;
-      setState(() {
-        _searchResults = results;
-        _isSearching = false;
-      });
-    } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _searchError = 'Ошибка поиска: $e';
-        _isSearching = false;
-      });
-    }
-  }
-
-  void _clearSearch() {
-    _debounce?.cancel();
+  // 👇 Логика пасхалки
+  void _checkEasterEgg(String raw) {
+    final normalized = raw.trim().toLowerCase().replaceAll(RegExp(r'\s+'), ' ');
+    if (normalized != 'kendrick lamar') return;
+    if (_easterEggTriggered) return;
+    
+    _easterEggTriggered = true;
     _searchController.clear();
-    setState(() {
-      _query = '';
-      _searchResults = null;
-      _isSearching = false;
-      _searchError = null;
+
+    // Включаем трек
+    context.read<PlayerProvider>().playTrack(MockData.theyNotLikeUs);
+    
+    // Сбрасываем флаг, чтобы можно было вызвать снова
+    Future.delayed(const Duration(seconds: 2), () {
+      if (mounted) _easterEggTriggered = false;
     });
   }
 
@@ -98,7 +72,9 @@ class _BrowseScreenState extends State<BrowseScreen> {
   Widget build(BuildContext context) {
     final provider = context.watch<PlayerProvider>();
     final tracks = provider.allTracks;
-
+    if (_shuffledGenres.isEmpty && provider.allTracks.isNotEmpty) {
+      _shuffledGenres = _getAllGenres(provider)..shuffle();
+    }
     if (provider.isLoading) {
       return const Scaffold(
         backgroundColor: AppTheme.background,
@@ -111,11 +87,9 @@ class _BrowseScreenState extends State<BrowseScreen> {
         backgroundColor: AppTheme.background,
         body: Center(
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(provider.errorMessage!,
-                  style: const TextStyle(color: Colors.red)),
+              Text(provider.errorMessage!, style: const TextStyle(color: Colors.red)),
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: () => context.read<PlayerProvider>().loadAllData(),
@@ -127,23 +101,17 @@ class _BrowseScreenState extends State<BrowseScreen> {
       );
     }
 
-    // Источник данных: результаты поиска с сервера ИЛИ локальный список
-    final baseTracks = _searchResults ?? tracks;
-
-    // Фильтр по миру применяется и к результатам поиска
-    final filteredTracks = baseTracks.where((track) {
+    final filteredTracks = tracks.where((track) {
       if (_selectedWorld == null) return true;
       return track.world == _selectedWorld;
     }).toList();
-
-    final isSearchMode = _query.trim().isNotEmpty;
 
     return Scaffold(
       backgroundColor: AppTheme.background,
       body: SafeArea(
         child: CustomScrollView(
           slivers: [
-            // 1. AppBar
+            // 1. AppBar (оставил логотип, как в дизайне)
             SliverAppBar(
               backgroundColor: AppTheme.background,
               elevation: 0,
@@ -158,8 +126,7 @@ class _BrowseScreenState extends State<BrowseScreen> {
                     color: AppTheme.textPrimary,
                   ),
                   children: [
-                    TextSpan(
-                        text: '/', style: TextStyle(color: AppTheme.accent)),
+                    TextSpan(text: '/', style: TextStyle(color: AppTheme.accent)),
                   ],
                 ),
               ),
@@ -167,100 +134,42 @@ class _BrowseScreenState extends State<BrowseScreen> {
                 const SizedBox(width: 16),
                 CircleAvatar(
                   backgroundColor: AppTheme.accent.withOpacity(0.2),
-                  child: const Text(
-                    'AK',
-                    style: TextStyle(color: AppTheme.accent, fontSize: 12),
-                  ),
+                  child: const Text('AK', style: TextStyle(color: AppTheme.accent, fontSize: 12)),
                 ),
                 const SizedBox(width: 16),
               ],
             ),
 
-            // 2. Заголовок
+            // 2. TopNavigationBar (поиск + кнопки)
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: TopNavigationBar(),
+              ),
+            ),
+
+            // 3. Заголовок страницы
             SliverPadding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
               sliver: SliverToBoxAdapter(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
                       'BROWSE / ALL GENRES',
-                      style: TextStyle(
-                        color: AppTheme.textSecondary,
-                        fontSize: 12,
-                        letterSpacing: 1,
-                      ),
+                      style: TextStyle(color: AppTheme.textSecondary, fontSize: 12, letterSpacing: 1),
                     ),
                     const SizedBox(height: 8),
                     Text(
                       'Every shade of\nsound.',
-                      style: Theme.of(context)
-                          .textTheme
-                          .displayLarge
-                          ?.copyWith(fontSize: 42),
+                      style: Theme.of(context).textTheme.displayLarge?.copyWith(fontSize: 42),
                     ),
                     const SizedBox(height: 12),
                     const Text(
                       'From a single piano to a hundred-piece orchestra. Find your way in.',
-                      style: TextStyle(
-                          color: AppTheme.textSecondary, fontSize: 14),
+                      style: TextStyle(color: AppTheme.textSecondary, fontSize: 14),
                     ),
                   ],
-                ),
-              ),
-            ),
-
-            // 3. Поисковая строка
-            SliverPadding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-              sliver: SliverToBoxAdapter(
-                child: TextField(
-                  controller: _searchController,
-                  onChanged: _onSearchChanged,
-                  textInputAction: TextInputAction.search,
-                  onSubmitted: (v) {
-                    final trimmed = v.trim();
-                    if (trimmed.isNotEmpty) _runSearch(trimmed);
-                  },
-                  style: const TextStyle(color: AppTheme.textPrimary),
-                  cursorColor: AppTheme.accent,
-                  decoration: InputDecoration(
-                    hintText: 'Композитор, фильм или песня...',
-                    hintStyle:
-                        const TextStyle(color: AppTheme.textSecondary),
-                    prefixIcon: const Icon(
-                      PhosphorIconsRegular.magnifyingGlass,
-                      color: AppTheme.textSecondary,
-                    ),
-                    suffixIcon: _isSearching
-                        ? const Padding(
-                            padding: EdgeInsets.all(12.0),
-                            child: SizedBox(
-                              width: 18,
-                              height: 18,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: AppTheme.accent,
-                              ),
-                            ),
-                          )
-                        : _query.isEmpty
-                            ? null
-                            : IconButton(
-                                icon: const Icon(PhosphorIconsRegular.x,
-                                    color: AppTheme.textSecondary),
-                                onPressed: _clearSearch,
-                              ),
-                    filled: true,
-                    fillColor: AppTheme.surface,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
-                    ),
-                    contentPadding:
-                        const EdgeInsets.symmetric(vertical: 14),
-                  ),
                 ),
               ),
             ),
@@ -285,34 +194,18 @@ class _BrowseScreenState extends State<BrowseScreen> {
             ),
             const SliverToBoxAdapter(child: SizedBox(height: 24)),
 
-            // 5. Ошибка поиска
-            if (_searchError != null)
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: Text(
-                    _searchError!,
-                    style: const TextStyle(color: Colors.red),
-                  ),
-                ),
-              ),
-
-            // 6. Сетка
+            // 5. Сетка карточек
             SliverPadding(
-              padding:
-                  const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 100.0),
+              padding: const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 100.0),
               sliver: filteredTracks.isEmpty
-                  ? SliverToBoxAdapter(
+                  ? const SliverToBoxAdapter(
                       child: Center(
                         child: Padding(
-                          padding: const EdgeInsets.all(32.0),
+                          padding: EdgeInsets.all(32.0),
                           child: Text(
-                            isSearchMode && !_isSearching
-                                ? 'Ничего не найдено по «$_query».\nПопробуй иначе.'
-                                : 'Nothing here yet.\nTry a different filter.',
+                            'Nothing here yet.\nTry a different filter.',
                             textAlign: TextAlign.center,
-                            style:
-                                const TextStyle(color: AppTheme.textSecondary),
+                            style: TextStyle(color: AppTheme.textSecondary),
                           ),
                         ),
                       ),
@@ -336,33 +229,6 @@ class _BrowseScreenState extends State<BrowseScreen> {
     );
   }
 
-
-void _checkEasterEgg(String raw) {
-  final normalized = raw.trim().toLowerCase().replaceAll(RegExp(r'\s+'), ' ');
-  if (normalized != 'kendrick lamar') return;
-
-  // Защита от повторного срабатывания, пока поле не очистили
-  if (_easterEggTriggered) return;
-  _easterEggTriggered = true;
-
-  final provider = context.read<PlayerProvider>();
-
-  // Сбрасываем поиск, чтобы в поле ничего не осталось
-  _debounce?.cancel();
-  _searchController.clear();
-  setState(() {
-    _query = '';
-    _searchResults = null;
-    _isSearching = false;
-    _searchError = null;
-  });
-
-  // 🎵 Включаем трек
-  provider.playTrack(MockData.theyNotLikeUs);
-
-  // Снимаем флаг, когда поле снова станет пустым и пользователь начнёт печатать
-  // (см. _onSearchChanged)
-}
   Widget _buildFilterChip(String label, SoundtrackWorld? world) {
     final isSelected = _selectedWorld == world;
     return GestureDetector(
@@ -370,11 +236,8 @@ void _checkEasterEgg(String raw) {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color:
-              isSelected ? AppTheme.accent.withOpacity(0.2) : Colors.transparent,
-          border: Border.all(
-            color: isSelected ? AppTheme.accent : Colors.white24,
-          ),
+          color: isSelected ? AppTheme.accent.withOpacity(0.2) : Colors.transparent,
+          border: Border.all(color: isSelected ? AppTheme.accent : Colors.white24),
           borderRadius: BorderRadius.circular(20),
         ),
         child: Text(

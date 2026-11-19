@@ -10,6 +10,7 @@ enum SoundtrackWorld {
 
 /// Модель для одного трека (песни).
 class Track {
+  final String? genre;
   final String id;
   final String title;
   final String artist;
@@ -20,7 +21,6 @@ class Track {
   final String audioUrl;
   final bool isFavorite;
   final bool isSaved;
-
   const Track({
     required this.id,
     required this.title,
@@ -32,6 +32,7 @@ class Track {
     this.world = SoundtrackWorld.film,
     this.isFavorite = false,
     this.isSaved = false,
+    this.genre
   });
 
   /// Вспомогательный метод для форматирования длительности в строку "3:09"

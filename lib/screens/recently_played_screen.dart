@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../providers/player_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/cover_image.dart';
+import '../widgets/top_navigation_bar.dart';
 class RecentlyPlayedScreen extends StatelessWidget {
   const RecentlyPlayedScreen({Key? key}) : super(key: key);
 
@@ -32,6 +33,12 @@ class RecentlyPlayedScreen extends StatelessWidget {
       body: SafeArea(
         child: CustomScrollView(
           slivers: [
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: TopNavigationBar(),
+              ),
+            ),
             SliverPadding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
               sliver: SliverToBoxAdapter(

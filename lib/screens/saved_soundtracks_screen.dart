@@ -6,6 +6,7 @@ import '../models/soundtrack.dart';
 import '../providers/player_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/track_card.dart';
+import '../widgets/top_navigation_bar.dart';
 
 class SavedSoundtracksScreen extends StatefulWidget {
   const SavedSoundtracksScreen({super.key});
@@ -29,6 +30,12 @@ class _SavedSoundtracksScreenState extends State<SavedSoundtracksScreen> {
       backgroundColor: AppTheme.background,
       body: CustomScrollView(
         slivers: [
+          SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: TopNavigationBar(),
+              ),
+            ),
           // 1. AppBar
           SliverAppBar(
             backgroundColor: AppTheme.background,

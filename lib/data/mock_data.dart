@@ -1,21 +1,6 @@
 import '../models/soundtrack.dart';
 
 class MockData {
-  // ============================================================
-  // ТРЕКИ (Tracks)
-  // ============================================================
-  static List<Track> get allTracks => [
-      spiritedAwaySoundtrack,
-      interstellarSoundtrack,
-      duneSoundtrack,
-      grandBudapestSoundtrack,
-      mulanSoundtrack,
-      cowboyBebopSoundtrack,
-      fantasiaSoundtrack,
-      savingPrivateRyanSoundtrack,
-      spiritedAwayAltSoundtrack,
-      grandBudapestAltSoundtrack,
-    ].expand((soundtrack) => soundtrack.tracks).toList();
   // --- Spirited Away (Joe Hisaishi) ---
   static final Track oneSummersDay = Track(
     id: 't1',
@@ -186,77 +171,6 @@ class MockData {
   );
 
   // ============================================================
-  // САУНДТРЕКИ (Soundtracks)
-  // ============================================================
-
-  static final Soundtrack spiritedAwaySoundtrack = Soundtrack(
-    id: 's1',
-    title: 'Spirited Away',
-    composer: 'Joe Hisaishi',
-    releaseYear: 2001,
-    world: SoundtrackWorld.anime,
-    imageUrl: 'assets/images/spirited_away.jpg',
-    description: 'A little Ghibli magic. Step into the world of Joe Hisaishi.',
-    isSaved: true,
-    tracks: [oneSummersDay],
-  );
-
-  static final Soundtrack interstellarSoundtrack = Soundtrack(
-    id: 's2',
-    title: 'Interstellar',
-    composer: 'Hans Zimmer',
-    releaseYear: 2014,
-    world: SoundtrackWorld.film,
-    imageUrl: 'assets/images/interstellar.jpg',
-    description: 'Beyond the known. Big skies. Bigger feelings.',
-    isSaved: true,
-    tracks: [
-      cornfieldChase,
-      dayOne,
-      mountains,
-      stay,
-      noTimeForCaution,
-    ],
-  );
-
-  static final Soundtrack duneSoundtrack = Soundtrack(
-    id: 's3',
-    title: 'Dune: Part Two',
-    composer: 'Hans Zimmer',
-    releaseYear: 2024,
-    world: SoundtrackWorld.film,
-    imageUrl: 'assets/images/dune.jpg',
-    description: 'The sound of Arrakis. Vast, visceral, unforgettable.',
-    isSaved: true,
-    tracks: [
-      heraldOfChange,
-      beginningsAreSuchDelicateTimes,
-      eclipse,
-      aTimeOfQuietBetweenTheStorms,
-      wormRide,
-      aKissOnTheBeach,
-    ],
-  );
-
-  static final Soundtrack grandBudapestSoundtrack = Soundtrack(
-    id: 's4',
-    title: 'The Grand Budapest Hotel',
-    composer: 'Alexandre Desplat',
-    releaseYear: 2014,
-    world: SoundtrackWorld.film,
-    imageUrl: 'assets/images/budapest.jpg',
-    description: 'A world in every score. Whimsical, precise, unforgettable.',
-    isSaved: true,
-    tracks: [
-      aPoisonousFable,
-      mrMoustafa,
-      theNewLobbyBoy,
-      mendlAndHisWork,
-      joplingArrives,
-    ],
-  );
-
-  // ============================================================
   // УДОБНЫЕ ССЫЛКИ (для мини-плеера и прочего)
   // ============================================================
 
@@ -346,90 +260,6 @@ static final Track mrMoustafaReprise = Track(
   audioUrl: 'assets/audio/one_summers_day.mp3',
   imageUrl: 'assets/images/grand_budapest_2.jpg',
 );
-
-// ============================================================
-// НОВЫЕ САУНДТРЕКИ ДЛЯ BROWSE
-// ============================================================
-
-static final Soundtrack mulanSoundtrack = Soundtrack(
-  id: 'b1',
-  title: 'Mulan',
-  composer: 'Jerry Goldsmith',
-  releaseYear: 1998,
-  world: SoundtrackWorld.animation,
-  imageUrl: 'assets/images/mulan.jpg',
-  description: 'A tale of honor, courage, and reflection.',
-  tracks: [mulanReflection, mulanMainTitle],
-);
-
-static final Soundtrack cowboyBebopSoundtrack = Soundtrack(
-  id: 'b2',
-  title: 'Cowboy Bebop',
-  composer: 'SEATBELTS',
-  releaseYear: 1998,
-  world: SoundtrackWorld.anime,
-  imageUrl: 'assets/images/cowboy_bebop.jpg',
-  description: 'Jazz, blues, and space. See you space cowboy.',
-  tracks: [tank, spaceLion],
-);
-
-static final Soundtrack fantasiaSoundtrack = Soundtrack(
-  id: 'b3',
-  title: 'Fantasia',
-  composer: 'Mussorgsky & Beethoven',
-  releaseYear: 1940,
-  world: SoundtrackWorld.animation,
-  imageUrl: 'assets/images/fantasia.jpg',
-  description: 'Music with a life of its own.',
-  tracks: [nightOnBaldMountain, pastoralSymphony],
-);
-
-static final Soundtrack savingPrivateRyanSoundtrack = Soundtrack(
-  id: 'b4',
-  title: 'Saving Private Ryan',
-  composer: 'John Williams',
-  releaseYear: 1998,
-  world: SoundtrackWorld.film,
-  imageUrl: 'assets/images/saving_private_ryan.jpg',
-  description: 'The score that stays after the credits.',
-  tracks: [hymnToTheFallen],
-);
-
-static final Soundtrack spiritedAwayAltSoundtrack = Soundtrack(
-  id: 'b5',
-  title: 'Spirited Away',
-  composer: 'Joe Hisaishi',
-  releaseYear: 2001,
-  world: SoundtrackWorld.anime,
-  imageUrl: 'assets/images/spirited_away_2.jpg',
-  description: 'A door to another world.',
-  tracks: [theNameOfLife],
-);
-
-static final Soundtrack grandBudapestAltSoundtrack = Soundtrack(
-  id: 'b6',
-  title: 'The Grand Budapest Hotel',
-  composer: 'Alexandre Desplat',
-  releaseYear: 2014,
-  world: SoundtrackWorld.film,
-  imageUrl: 'assets/images/grand_budapest_2.jpg',
-  description: 'Whimsical, precise, unforgettable.',
-  tracks: [mrMoustafaReprise],
-);
-
-// ============================================================
-// СПИСОК ДЛЯ BROWSE (отдельный от основного)
-// ============================================================
-
-/// Полный каталог для экрана Browse
-  static final List<Soundtrack> browseCatalog = [
-    mulanSoundtrack,
-    cowboyBebopSoundtrack,
-    fantasiaSoundtrack,
-    savingPrivateRyanSoundtrack,
-    spiritedAwayAltSoundtrack,
-    grandBudapestAltSoundtrack,
-  ];
   static final Track theyNotLikeUs = Track(
   id: 'easter_egg_1',
   title: 'They Not Like Us',

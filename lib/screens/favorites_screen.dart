@@ -1,10 +1,10 @@
 // lib/screens/favorites_screen.dart
 import 'package:material_ui/material_ui.dart';
-import 'package:phosphor_icons/phosphor_icons.dart';
 import 'package:provider/provider.dart';
 import '../providers/player_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/track_card.dart';
+import '../widgets/top_navigation_bar.dart';
 
 class FavoritesScreen extends StatelessWidget {
   const FavoritesScreen({Key? key}) : super(key: key);
@@ -18,7 +18,15 @@ class FavoritesScreen extends StatelessWidget {
       body: SafeArea(
         child: CustomScrollView(
           slivers: [
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: TopNavigationBar(),
+              ),
+            ),
+
             SliverAppBar(
+              
               backgroundColor: AppTheme.background,
               elevation: 0,
               pinned: true,
@@ -38,6 +46,7 @@ class FavoritesScreen extends StatelessWidget {
                 const SizedBox(width: 16),
               ],
             ),
+            
             SliverPadding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
               sliver: SliverToBoxAdapter(

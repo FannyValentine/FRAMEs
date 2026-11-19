@@ -1,4 +1,6 @@
 // lib/providers/player_provider.dart
+// ignore_for_file: cast_from_null_always_fails
+
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_background/just_audio_background.dart';
@@ -187,7 +189,7 @@ class PlayerProvider extends ChangeNotifier {
   await _logHistory(track);
 
   final url = track.audioUrl;
-  if (url == null || url.isEmpty) {
+  if (url.isEmpty) {
     debugPrint('У трека ${track.title} нет audio_url');
     return;
   }

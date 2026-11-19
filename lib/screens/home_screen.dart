@@ -5,7 +5,8 @@ import 'package:provider/provider.dart';
 import '../providers/player_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/track_card.dart';
-
+import '../providers/navigation_provider.dart';
+import '../widgets/top_navigation_bar.dart';
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
 
@@ -14,9 +15,53 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  // Переменная для отслеживания активной верхней кнопки
-  int _selectedTopIndex = 0;
-
+  Widget _buildTopButton(BuildContext context, String text, int index, IconData icon) {
+      final nav = context.watch<NavigationProvider>();
+      final isActive = nav.currentIndex == index;
+      return GestureDetector(
+        onTap: () {
+          // Меняем индекс в провайдере, а не локально
+          context.read<NavigationProvider>().setIndex(index);
+        },
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          decoration: BoxDecoration(
+            color: isActive ? AppTheme.accent.withOpacity(0.2) : Colors.transparent,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Row(
+            children: [
+              Icon(icon,
+                  color: isActive ? AppTheme.accent : AppTheme.textPrimary,
+                  size: 18),
+              const SizedBox(width: 8),
+              Text(text,
+                  style: TextStyle(
+                      color: isActive ? AppTheme.accent : AppTheme.textPrimary)),
+            ],
+          ),
+        ),
+      );
+    }
+     Widget _buildTopIcon(BuildContext context, IconData icon, String label, int index) {
+    final nav = context.watch<NavigationProvider>();
+    final isActive = nav.currentIndex == index;
+    return GestureDetector(
+      onTap: () {
+        context.read<NavigationProvider>().setIndex(index);
+      },
+      child: Column(
+        children: [
+          Icon(icon, color: isActive ? AppTheme.accent : AppTheme.textPrimary),
+          const SizedBox(height: 4),
+          Text(label,
+              style: TextStyle(
+                  fontSize: 10,
+                  color: isActive ? AppTheme.accent : AppTheme.textSecondary)),
+        ],
+      ),
+    );
+  }
   @override
   Widget build(BuildContext context) {
     final allTracks = context.watch<PlayerProvider>().allTracks;
@@ -29,35 +74,7 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // --- Поиск ---
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                decoration: BoxDecoration(
-                  color: AppTheme.surface,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  children: const [
-                    Icon(PhosphorIconsRegular.magnifyingGlass,
-                        color: AppTheme.textSecondary),
-                    SizedBox(width: 12),
-                    Text('Search scores, composers, worlds...',
-                        style: TextStyle(color: AppTheme.textSecondary)),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              // --- Верхние кнопки (теперь интерактивные) ---
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  _buildTopButton(context, 'Discover', 0, PhosphorIconsRegular.compass),
-                  _buildTopButton(context, 'Browse', 1, PhosphorIconsRegular.squaresFour),
-                  _buildTopIcon(context, PhosphorIconsRegular.waveform, 'Listening room', 2),
-                  _buildTopIcon(context, PhosphorIconsRegular.filmStrip, 'Film', 3),
-                ],
-              ),
+              const TopNavigationBar(),
               const SizedBox(height: 32),
 
               // --- Заголовок "Spotlight" ---
@@ -183,48 +200,6 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildTopButton(BuildContext context, String text, int index, IconData icon) {
-    final isActive = _selectedTopIndex == index;
-    return GestureDetector(
-      onTap: () => setState(() => _selectedTopIndex = index),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        decoration: BoxDecoration(
-          color: isActive ? AppTheme.accent.withOpacity(0.2) : Colors.transparent,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Row(
-          children: [
-            Icon(icon,
-                color: isActive ? AppTheme.accent : AppTheme.textPrimary,
-                size: 18),
-            const SizedBox(width: 8),
-            Text(text,
-                style: TextStyle(
-                    color: isActive ? AppTheme.accent : AppTheme.textPrimary)),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTopIcon(BuildContext context, IconData icon, String label, int index) {
-    final isActive = _selectedTopIndex == index;
-    return GestureDetector(
-      onTap: () => setState(() => _selectedTopIndex = index),
-      child: Column(
-        children: [
-          Icon(icon, color: isActive ? AppTheme.accent : AppTheme.textPrimary),
-          const SizedBox(height: 4),
-          Text(label,
-              style: TextStyle(
-                  fontSize: 10,
-                  color: isActive ? AppTheme.accent : AppTheme.textSecondary)),
-        ],
       ),
     );
   }

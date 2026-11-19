@@ -6,7 +6,6 @@ import '../models/soundtrack.dart';
 import '../providers/player_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/cover_image.dart';
-import '../widgets/track_card.dart';
 
 class SoundtrackCard extends StatelessWidget {
   final Soundtrack soundtrack;
