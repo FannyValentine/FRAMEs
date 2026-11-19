@@ -1,10 +1,9 @@
 // lib/screens/browse_screen.dart
 import 'dart:async';
-
 import 'package:material_ui/material_ui.dart';
 import 'package:phosphor_icons/phosphor_icons.dart';
 import 'package:provider/provider.dart';
-
+import '../data/mock_data.dart';
 import '../data/supabase_track_repository.dart';
 import '../models/soundtrack.dart';
 import '../providers/player_provider.dart';
@@ -21,7 +20,7 @@ class BrowseScreen extends StatefulWidget {
 class _BrowseScreenState extends State<BrowseScreen> {
   // Текущий выбранный мир (null = "All worlds")
   SoundtrackWorld? _selectedWorld;
-
+  bool _easterEggTriggered = false;
   // --- Поиск ---
   final TextEditingController _searchController = TextEditingController();
   final SupabaseTrackRepository _repo = SupabaseTrackRepository();
@@ -38,22 +37,22 @@ class _BrowseScreenState extends State<BrowseScreen> {
     _searchController.dispose();
     super.dispose();
   }
-
+  
   void _onSearchChanged(String value) {
     setState(() => _query = value);
-
+    _checkEasterEgg(value);
     _debounce?.cancel();
 
     final trimmed = value.trim();
     if (trimmed.isEmpty) {
       setState(() {
+        _easterEggTriggered = false;
         _searchResults = null;
         _isSearching = false;
         _searchError = null;
       });
       return;
     }
-
     // Debounce 350 мс, чтобы не спамить сервер на каждый символ
     _debounce = Timer(const Duration(milliseconds: 350), () {
       _runSearch(trimmed);
@@ -337,6 +336,33 @@ class _BrowseScreenState extends State<BrowseScreen> {
     );
   }
 
+
+void _checkEasterEgg(String raw) {
+  final normalized = raw.trim().toLowerCase().replaceAll(RegExp(r'\s+'), ' ');
+  if (normalized != 'kendrick lamar') return;
+
+  // Защита от повторного срабатывания, пока поле не очистили
+  if (_easterEggTriggered) return;
+  _easterEggTriggered = true;
+
+  final provider = context.read<PlayerProvider>();
+
+  // Сбрасываем поиск, чтобы в поле ничего не осталось
+  _debounce?.cancel();
+  _searchController.clear();
+  setState(() {
+    _query = '';
+    _searchResults = null;
+    _isSearching = false;
+    _searchError = null;
+  });
+
+  // 🎵 Включаем трек
+  provider.playTrack(MockData.theyNotLikeUs);
+
+  // Снимаем флаг, когда поле снова станет пустым и пользователь начнёт печатать
+  // (см. _onSearchChanged)
+}
   Widget _buildFilterChip(String label, SoundtrackWorld? world) {
     final isSelected = _selectedWorld == world;
     return GestureDetector(

@@ -430,4 +430,12 @@ static final Soundtrack grandBudapestAltSoundtrack = Soundtrack(
     spiritedAwayAltSoundtrack,
     grandBudapestAltSoundtrack,
   ];
+  static final Track theyNotLikeUs = Track(
+  id: 'easter_egg_1',
+  title: 'They Not Like Us',
+  artist: 'Kendrick Lamar',
+  albumTitle: 'GNX',
+  imageUrl: 'assets/images/they_not_like_us.jpg',
+  audioUrl: 'assets/audio/they_not_like_us.mp3',
+);
 }

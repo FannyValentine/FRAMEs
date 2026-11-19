@@ -146,48 +146,67 @@ class PlayerProvider extends ChangeNotifier {
   }
 
   Future<void> playTrack(Track track) async {
-    if (_currentTrack?.id == track.id &&
-        _audioPlayer.processingState != ProcessingState.idle) {
-      if (!_isPlaying) await _audioPlayer.play();
-      return;
-    }
-
-    _currentTrack = track;
-    _recentlyPlayed.removeWhere((t) => t.id == track.id);
-    _recentlyPlayed.insert(0, track);
-    if (_recentlyPlayed.length > 10) _recentlyPlayed.removeLast();
-    notifyListeners();
-
-    await _logHistory(track); // 👈 запись в историю при каждом запуске
-
-    final url = track.audioUrl;
-    if (url == null || url.isEmpty) {
-      debugPrint('У трека ${track.title} нет audio_url');
-      return;
-    }
-
-    if (!url.startsWith('http://') && !url.startsWith('https://')) {
-      debugPrint('audio_url не является сетевым URL: $url');
-      return;
-    }
-
-    try {
-      await _audioPlayer.stop();
-      final audioSource = AudioSource.uri(
-        Uri.parse(url),
-        tag: MediaItem(
-          id: track.id,
-          album: track.albumTitle,
-          title: track.title,
-          artist: track.artist,
-        ),
-      );
-      await _audioPlayer.setAudioSource(audioSource);
-      await _audioPlayer.play();
-    } catch (e) {
-      debugPrint('Ошибка воспроизведения: $e');
-    }
+  if (_currentTrack?.id == track.id &&
+      _audioPlayer.processingState != ProcessingState.idle) {
+    if (!_isPlaying) await _audioPlayer.play();
+    return;
   }
+  AudioSource? _resolveAudioSource(String url, Track track) {
+    final tag = MediaItem(
+      id: track.id,
+      album: track.albumTitle,
+      title: track.title,
+      artist: track.artist,
+    );
+
+    // Сеть
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      return AudioSource.uri(Uri.parse(url), tag: tag);
+    }
+
+    // Локальный ассет: assets/... (или явная схема asset://)
+    if (url.startsWith('assets/') || url.startsWith('asset://')) {
+      final assetPath =
+          url.startsWith('asset://') ? url.substring('asset://'.length) : url;
+      return AudioSource.asset(assetPath, tag: tag);
+    }
+
+    // Файл на устройстве (опционально, для полноты)
+    if (url.startsWith('file://')) {
+      return AudioSource.uri(Uri.parse(url), tag: tag);
+    }
+
+    return null;
+  }
+  _currentTrack = track;
+  _recentlyPlayed.removeWhere((t) => t.id == track.id);
+  _recentlyPlayed.insert(0, track);
+  if (_recentlyPlayed.length > 10) _recentlyPlayed.removeLast();
+  notifyListeners();
+
+  await _logHistory(track);
+
+  final url = track.audioUrl;
+  if (url == null || url.isEmpty) {
+    debugPrint('У трека ${track.title} нет audio_url');
+    return;
+  }
+
+  final audioSource = _resolveAudioSource(url, track);
+  if (audioSource == null) {
+    debugPrint('Неподдерживаемый audio_url: $url');
+    return;
+  }
+
+  try {
+    await _audioPlayer.stop();
+    await _audioPlayer.setAudioSource(audioSource);
+    await _audioPlayer.play();
+  } catch (e) {
+    debugPrint('Ошибка воспроизведения: $e');
+  }
+}
+  
 
   Future<void> togglePlayPause() async {
     if (_audioPlayer.playing) {
