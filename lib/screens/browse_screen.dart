@@ -112,6 +112,7 @@ class _BrowseScreenState extends State<BrowseScreen> {
         backgroundColor: AppTheme.background,
         body: Center(
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(provider.errorMessage!,
@@ -318,16 +319,14 @@ class _BrowseScreenState extends State<BrowseScreen> {
                       ),
                     )
                   : SliverGrid(
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: 2,
                         crossAxisSpacing: 16,
-                        mainAxisSpacing: 24,
-                        childAspectRatio: 0.65,
+                        mainAxisSpacing: 20,
+                        childAspectRatio: 0.77,
                       ),
                       delegate: SliverChildBuilderDelegate(
-                        (context, index) =>
-                            TrackCard(track: filteredTracks[index]),
+                        (context, index) => TrackCard(track: filteredTracks[index]),
                         childCount: filteredTracks.length,
                       ),
                     ),

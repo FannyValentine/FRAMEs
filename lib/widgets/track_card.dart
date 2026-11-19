@@ -20,58 +20,86 @@ class TrackCard extends StatelessWidget {
 
     return GestureDetector(
       onTap: () => context.read<PlayerProvider>().playTrack(track),
+      // 👇 ВОТ СЮДА вставляется фрагмент — это child у GestureDetector
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
+          // 1. Квадратная обложка + кнопки поверх неё
           AspectRatio(
             aspectRatio: 1,
             child: Stack(
+              fit: StackFit.expand,
               children: [
                 CoverImage(
                   url: track.imageUrl,
                   fit: BoxFit.cover,
                   borderRadius: BorderRadius.circular(8),
                 ),
-                // 👇 Избранное (сердечко) — слева сверху
+                // Избранное — слева сверху
                 Positioned(
                   top: 8,
                   left: 8,
                   child: _buildIconButton(
-                    icon: isFav ? PhosphorIconsFill.heart : PhosphorIconsRegular.heart,
+                    icon: isFav
+                        ? PhosphorIconsFill.heart
+                        : PhosphorIconsRegular.heart,
                     color: isFav ? AppTheme.accent : Colors.white,
-                    onTap: () => context.read<PlayerProvider>().toggleFavorite(track.id),
+                    onTap: () => context
+                        .read<PlayerProvider>()
+                        .toggleFavorite(track.id),
                   ),
                 ),
-                // 👇 Сохранить (закладка) — справа сверху
+                // Сохранить — справа сверху
                 Positioned(
                   top: 8,
                   right: 8,
                   child: _buildIconButton(
-                    icon: isSaved ? PhosphorIconsFill.bookmarkSimple : PhosphorIconsRegular.bookmarkSimple,
+                    icon: isSaved
+                        ? PhosphorIconsFill.bookmarkSimple
+                        : PhosphorIconsRegular.bookmarkSimple,
                     color: isSaved ? AppTheme.accent : Colors.white,
-                    onTap: () => context.read<PlayerProvider>().toggleSaved(track.id),
+                    onTap: () =>
+                        context.read<PlayerProvider>().toggleSaved(track.id),
                   ),
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 12),
-          Text(track.title,
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis),
-          const SizedBox(height: 4),
-          Text(track.artist,
-              style: const TextStyle(color: AppTheme.textSecondary, fontSize: 13),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis),
+          const SizedBox(height: 8),
+          // 2. Название трека
+          Text(
+            track.title,
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 15,
+              height: 1.2,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 2),
+          // 3. Автор
+          Text(
+            track.artist,
+            style: const TextStyle(
+              color: AppTheme.textSecondary,
+              fontSize: 12,
+              height: 1.2,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildIconButton({required IconData icon, required Color color, required VoidCallback onTap}) {
+  Widget _buildIconButton({
+    required IconData icon,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -82,7 +110,8 @@ class TrackCard extends StatelessWidget {
         ),
         child: AnimatedSwitcher(
           duration: const Duration(milliseconds: 250),
-          transitionBuilder: (child, animation) => ScaleTransition(scale: animation, child: child),
+          transitionBuilder: (child, animation) =>
+              ScaleTransition(scale: animation, child: child),
           child: Icon(icon, key: ValueKey(icon), color: color, size: 18),
         ),
       ),
