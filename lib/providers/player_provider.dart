@@ -11,11 +11,10 @@ import '../data/supabase_track_repository.dart';
 class PlayerProvider extends ChangeNotifier {
   final AudioPlayer _audioPlayer = AudioPlayer();
   final SupabaseTrackRepository _trackRepo = SupabaseTrackRepository();
-
+  List<Track> _queue = [];
   List<Track> _allTracks = [];
   bool _isLoading = false;
   String? _errorMessage;
-
   Track? _currentTrack;
   bool _isPlaying = false;
 
@@ -46,9 +45,9 @@ class PlayerProvider extends ChangeNotifier {
       _isPlaying = state.playing;
       notifyListeners();
     });
-    loadAllData(); // 👈 ВАЖНО: загрузка при старте
+    loadAllData(); // ВАЖНО: загрузка при старте
   }
-
+  
   Future<void> loadAllData() async {
     _isLoading = true;
     _errorMessage = null;
@@ -146,7 +145,15 @@ class PlayerProvider extends ChangeNotifier {
       debugPrint('Ошибка записи истории: $e');
     }
   }
+  Future<void> playPlaylist(List<Track> tracks) async {
+  if (tracks.isEmpty) return;
+  _queue = List.from(tracks);
+  await playTrack(_queue.first);
+  }
 
+  void clearQueue() {
+    _queue = [];
+  }
   Future<void> playTrack(Track track) async {
   if (_currentTrack?.id == track.id &&
       _audioPlayer.processingState != ProcessingState.idle) {
@@ -221,23 +228,26 @@ class PlayerProvider extends ChangeNotifier {
   Future<void> seek(Duration position) async {
     await _audioPlayer.seek(position);
   }
-
   Future<void> playNext() async {
-    if (_allTracks.isEmpty || _currentTrack == null) return;
-    final currentIndex = _allTracks.indexWhere((t) => t.id == _currentTrack!.id);
+    if (_queue.isEmpty) {
+      // fallback: играем следующий из allTracks
+      return playNext();
+    }
+    final currentIndex = _queue.indexWhere((t) => t.id == _currentTrack?.id);
     if (currentIndex == -1) return;
-    final nextIndex = (currentIndex + 1) % _allTracks.length;
-    await playTrack(_allTracks[nextIndex]);
+    final nextIndex = (currentIndex + 1) % _queue.length;
+    await playTrack(_queue[nextIndex]);
   }
-
+  
   Future<void> playPrevious() async {
-    if (_allTracks.isEmpty || _currentTrack == null) return;
-    final currentIndex = _allTracks.indexWhere((t) => t.id == _currentTrack!.id);
+    if (_queue.isEmpty) {
+      return playPrevious();
+    }
+    final currentIndex = _queue.indexWhere((t) => t.id == _currentTrack?.id);
     if (currentIndex == -1) return;
-    final prevIndex = (currentIndex - 1 + _allTracks.length) % _allTracks.length;
-    await playTrack(_allTracks[prevIndex]);
+    final prevIndex = (currentIndex - 1 + _queue.length) % _queue.length;
+    await playTrack(_queue[prevIndex]);
   }
-
   @override
   void dispose() {
     _audioPlayer.dispose();

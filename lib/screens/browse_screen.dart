@@ -1,4 +1,3 @@
-// lib/screens/browse_screen.dart
 import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 import '../data/mock_data.dart';
@@ -7,6 +6,7 @@ import '../providers/player_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/track_card.dart';
 import '../widgets/top_navigation_bar.dart';
+import '../widgets/user_avatar.dart';
 
 class BrowseScreen extends StatefulWidget {
   const BrowseScreen({Key? key}) : super(key: key);
@@ -50,7 +50,7 @@ class _BrowseScreenState extends State<BrowseScreen> {
   super.initState();
   }
 
-  // 👇 Логика пасхалки
+  //   Логика пасхалки
   void _checkEasterEgg(String raw) {
     final normalized = raw.trim().toLowerCase().replaceAll(RegExp(r'\s+'), ' ');
     if (normalized != 'kendrick lamar') return;
@@ -132,10 +132,7 @@ class _BrowseScreenState extends State<BrowseScreen> {
               ),
               actions: [
                 const SizedBox(width: 16),
-                CircleAvatar(
-                  backgroundColor: AppTheme.accent.withOpacity(0.2),
-                  child: const Text('AK', style: TextStyle(color: AppTheme.accent, fontSize: 12)),
-                ),
+                const UserAvatar(),
                 const SizedBox(width: 16),
               ],
             ),

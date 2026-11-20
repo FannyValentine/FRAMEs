@@ -1,9 +1,12 @@
-import 'package:flutter/material.dart';
+// lib/screens/film_screen.dart
+import 'package:material_ui/material_ui.dart';
+import 'package:phosphor_icons/phosphor_icons.dart';
 import 'package:provider/provider.dart';
-import '../models/soundtrack.dart'; 
+import '../models/soundtrack.dart';
 import '../providers/player_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/top_navigation_bar.dart';
+import '../widgets/user_avatar.dart';
 
 class FilmScreen extends StatefulWidget {
   const FilmScreen({Key? key}) : super(key: key);
@@ -14,31 +17,12 @@ class FilmScreen extends StatefulWidget {
 
 class _FilmScreenState extends State<FilmScreen> {
   String _selectedFilter = 'All scores';
-  final Set<String> _favoriteTrackIds = {}; // Локальное хранилище лайков
 
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<PlayerProvider>();
     final allTracks = provider.allTracks;
 
-    // 1. Фильтрация по миру (Film)
-    final filmTracks = allTracks
-        .where((track) => track.world == SoundtrackWorld.film)
-        .toList();
-
-    // 2. Фильтрация по кнопкам (All scores, Essential, New releases)
-    // Поскольку в БД нет поля "isEssential" или "releaseDate", 
-    // мы эмулируем это поведение для демонстрации работы кнопок.
-    List<Track> filteredTracks = filmTracks;
-    if (_selectedFilter == 'Essential') {
-      // Берем каждый второй трек как "избранный"
-      filteredTracks = filmTracks.where((t) => filmTracks.indexOf(t) % 2 == 0).toList();
-    } else if (_selectedFilter == 'New releases') {
-      // Берем первые 4 трека (так как они отсортированы по created_at desc)
-      filteredTracks = filmTracks.take(4).toList();
-    }
-
-    // Если данных нет (загрузка или ошибка)
     if (provider.isLoading) {
       return const Scaffold(
         backgroundColor: AppTheme.background,
@@ -65,12 +49,28 @@ class _FilmScreenState extends State<FilmScreen> {
       );
     }
 
+    // 1. Фильтрация по миру (Film)
+    final filmTracks = allTracks
+        .where((track) => track.world == SoundtrackWorld.film)
+        .toList();
+
+    // 2. Фильтрация по кнопкам
+    List<Track> filteredTracks = filmTracks;
+    if (_selectedFilter == 'Essential') {
+      // "Essential" = треки, которые в избранном у пользователя
+      filteredTracks = filmTracks.where((t) => provider.isFavorite(t.id)).toList();
+    } else if (_selectedFilter == 'New releases') {
+      // "New releases" = последние 4 трека (по id, так как created_at нет в модели)
+      final sorted = List<Track>.from(filmTracks)
+        ..sort((a, b) => b.id.compareTo(a.id));
+      filteredTracks = sorted.take(4).toList();
+    }
+
     return Scaffold(
       backgroundColor: AppTheme.background,
       body: SafeArea(
         child: CustomScrollView(
           slivers: [
-            // AppBar
             SliverAppBar(
               backgroundColor: AppTheme.background,
               elevation: 0,
@@ -91,15 +91,11 @@ class _FilmScreenState extends State<FilmScreen> {
               ),
               actions: [
                 const SizedBox(width: 16),
-                CircleAvatar(
-                  backgroundColor: AppTheme.accent.withOpacity(0.2),
-                  child: const Text('AK', style: TextStyle(color: AppTheme.accent, fontSize: 12)),
-                ),
+                const UserAvatar(),
                 const SizedBox(width: 16),
               ],
             ),
 
-            // Навигация
             const SliverToBoxAdapter(
               child: Padding(
                 padding: EdgeInsets.all(16.0),
@@ -107,7 +103,6 @@ class _FilmScreenState extends State<FilmScreen> {
               ),
             ),
 
-            // Заголовок
             SliverPadding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
               sliver: SliverToBoxAdapter(
@@ -126,10 +121,7 @@ class _FilmScreenState extends State<FilmScreen> {
                     const SizedBox(height: 8),
                     Text(
                       'Film',
-                      style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                        fontSize: 48,
-                        fontFamily: 'Serif',
-                      ),
+                      style: Theme.of(context).textTheme.displayLarge?.copyWith(fontSize: 48),
                     ),
                     const SizedBox(height: 8),
                     const Text(
@@ -137,8 +129,6 @@ class _FilmScreenState extends State<FilmScreen> {
                       style: TextStyle(color: AppTheme.textSecondary, fontSize: 14),
                     ),
                     const SizedBox(height: 20),
-                    
-                    // Фильтры (Кнопки)
                     Row(
                       children: [
                         _buildFilterChip('All scores'),
@@ -154,7 +144,7 @@ class _FilmScreenState extends State<FilmScreen> {
               ),
             ),
 
-            // Баннер (Берем первый трек из списка, чтобы он был динамическим)
+            // Баннер с первым треком
             if (filmTracks.isNotEmpty)
               SliverToBoxAdapter(
                 child: Padding(
@@ -166,9 +156,9 @@ class _FilmScreenState extends State<FilmScreen> {
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(16),
                         image: DecorationImage(
-                          image: NetworkImage(filmTracks.first.imageUrl.isNotEmpty 
-                              ? filmTracks.first.imageUrl 
-                              : 'https://via.placeholder.com/400x200'), 
+                          image: filmTracks.first.imageUrl.isNotEmpty
+                              ? NetworkImage(filmTracks.first.imageUrl)
+                              : const AssetImage('assets/images/dune.jpg') as ImageProvider,
                           fit: BoxFit.cover,
                           colorFilter: const ColorFilter.mode(Colors.black45, BlendMode.darken),
                         ),
@@ -186,7 +176,6 @@ class _FilmScreenState extends State<FilmScreen> {
                                   filmTracks.first.title,
                                   style: Theme.of(context).textTheme.displayMedium?.copyWith(
                                     fontSize: 24,
-                                    fontFamily: 'Serif',
                                     color: Colors.white,
                                   ),
                                 ),
@@ -201,7 +190,7 @@ class _FilmScreenState extends State<FilmScreen> {
                           const Positioned(
                             top: 16,
                             right: 16,
-                            child: Icon(Icons.arrow_forward, color: Colors.white),
+                            child: Icon(PhosphorIconsRegular.arrowRight, color: Colors.white),
                           ),
                         ],
                       ),
@@ -212,16 +201,13 @@ class _FilmScreenState extends State<FilmScreen> {
 
             const SliverToBoxAdapter(child: SizedBox(height: 32)),
 
-            // Секция с карточками (Сетка)
+            // Секция "A world in every score."
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: Text(
                   'A world in every score.',
-                  style: Theme.of(context).textTheme.displayMedium?.copyWith(
-                    fontSize: 28,
-                    fontFamily: 'Serif',
-                  ),
+                  style: Theme.of(context).textTheme.displayMedium?.copyWith(fontSize: 28),
                 ),
               ),
             ),
@@ -247,12 +233,14 @@ class _FilmScreenState extends State<FilmScreen> {
                 ),
                 delegate: SliverChildBuilderDelegate(
                   (context, index) {
-                    // Берем первые 4 трека для сетки
                     if (index >= filmTracks.length) return const SizedBox.shrink();
                     final track = filmTracks[index];
                     return _buildPosterCard(
                       track: track,
-                      onTap: () => provider.playTrack(track),
+                      onTap: () {
+                        provider.clearQueue();       // используем тот же provider
+                        provider.playTrack(track);
+                      },
                     );
                   },
                   childCount: filmTracks.length > 4 ? 4 : filmTracks.length,
@@ -262,22 +250,18 @@ class _FilmScreenState extends State<FilmScreen> {
 
             const SliverToBoxAdapter(child: SizedBox(height: 32)),
 
-            // Секция со списком треков
+            // Секция "From scene to repeat."
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: Text(
                   'From scene to repeat.',
-                  style: Theme.of(context).textTheme.displayMedium?.copyWith(
-                    fontSize: 28,
-                    fontFamily: 'Serif',
-                  ),
+                  style: Theme.of(context).textTheme.displayMedium?.copyWith(fontSize: 28),
                 ),
               ),
             ),
             const SliverToBoxAdapter(child: SizedBox(height: 16)),
 
-            // Список треков (из отфильтрованных)
             SliverList(
               delegate: SliverChildBuilderDelegate(
                 (context, index) {
@@ -295,8 +279,6 @@ class _FilmScreenState extends State<FilmScreen> {
     );
   }
 
-  // --- Вспомогательные виджеты ---
-
   Widget _buildFilterChip(String label) {
     final isSelected = _selectedFilter == label;
     return GestureDetector(
@@ -304,7 +286,7 @@ class _FilmScreenState extends State<FilmScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? AppTheme.accent.withOpacity(0.2) : Colors.transparent,
+          color: isSelected ? AppTheme.accent.withValues(alpha: 0.2) : Colors.transparent,
           border: Border.all(color: isSelected ? AppTheme.accent : Colors.white24),
           borderRadius: BorderRadius.circular(20),
         ),
@@ -320,10 +302,7 @@ class _FilmScreenState extends State<FilmScreen> {
     );
   }
 
-  Widget _buildPosterCard({
-    required Track track,
-    required VoidCallback onTap,
-  }) {
+  Widget _buildPosterCard({required Track track, required VoidCallback onTap}) {
     return GestureDetector(
       onTap: onTap,
       child: Column(
@@ -334,9 +313,9 @@ class _FilmScreenState extends State<FilmScreen> {
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(12),
                 image: DecorationImage(
-                  image: NetworkImage(track.imageUrl.isNotEmpty 
-                      ? track.imageUrl 
-                      : 'https://via.placeholder.com/300'),
+                  image: track.imageUrl.isNotEmpty
+                      ? NetworkImage(track.imageUrl)
+                      : const AssetImage('assets/images/dune.jpg') as ImageProvider,
                   fit: BoxFit.cover,
                 ),
               ),
@@ -346,7 +325,7 @@ class _FilmScreenState extends State<FilmScreen> {
                   margin: const EdgeInsets.all(8),
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.6),
+                    color: Colors.black.withValues(alpha: 0.6),
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: const Text(
@@ -359,7 +338,7 @@ class _FilmScreenState extends State<FilmScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            track.albumTitle, // Используем название фильма
+            track.albumTitle,
             style: const TextStyle(color: AppTheme.textPrimary, fontSize: 16, fontWeight: FontWeight.w500),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
@@ -370,16 +349,15 @@ class _FilmScreenState extends State<FilmScreen> {
             children: [
               Expanded(
                 child: Text(
-                  track.artist, 
+                  track.artist,
                   style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
-              // В вашей БД нет года, поэтому ставим заглушку или можно убрать
-              const Text('2024', style: TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
+              // Год убран, так как его нет в модели
             ],
-          )
+          ),
         ],
       ),
     );
@@ -387,7 +365,7 @@ class _FilmScreenState extends State<FilmScreen> {
 
   Widget _buildTrackListItem(BuildContext context, Track track, int index, PlayerProvider provider) {
     final isCurrent = provider.currentTrack?.id == track.id;
-    final isFavorite = _favoriteTrackIds.contains(track.id);
+    final isFavorite = provider.isFavorite(track.id);
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
@@ -396,13 +374,12 @@ class _FilmScreenState extends State<FilmScreen> {
           SizedBox(
             width: 30,
             child: isCurrent
-                ? const Icon(Icons.play_arrow, color: AppTheme.accent, size: 20)
+                ? const Icon(PhosphorIconsFill.play, color: AppTheme.accent, size: 20)
                 : Text(
                     index.toString().padLeft(2, '0'),
                     style: const TextStyle(color: AppTheme.textSecondary, fontSize: 14),
                   ),
           ),
-          
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -427,30 +404,18 @@ class _FilmScreenState extends State<FilmScreen> {
               ],
             ),
           ),
-          
-          // Кнопка избранного
           IconButton(
             icon: Icon(
-              isFavorite ? Icons.favorite : Icons.favorite_border,
+              isFavorite ? PhosphorIconsFill.heart : PhosphorIconsRegular.heart,
               color: isFavorite ? AppTheme.accent : AppTheme.textSecondary,
               size: 20,
             ),
-            onPressed: () {
-              setState(() {
-                if (isFavorite) {
-                  _favoriteTrackIds.remove(track.id);
-                } else {
-                  _favoriteTrackIds.add(track.id);
-                }
-              });
-            },
+            onPressed: () => context.read<PlayerProvider>().toggleFavorite(track.id),
           ),
-          
-          // Длительность (в вашей БД duration = null, поэтому ставим заглушку)
-          // Если добавите поле duration в Supabase, используйте track.duration
-          const Text(
-            '--:--',
-            style: TextStyle(color: AppTheme.textSecondary, fontSize: 14),
+          // Длительность из track.duration (если null — показываем --:--)
+          Text(
+            track.formattedDuration,
+            style: const TextStyle(color: AppTheme.textSecondary, fontSize: 14),
           ),
         ],
       ),

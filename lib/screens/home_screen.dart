@@ -5,63 +5,11 @@ import 'package:provider/provider.dart';
 import '../providers/player_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/track_card.dart';
-import '../providers/navigation_provider.dart';
 import '../widgets/top_navigation_bar.dart';
-class HomeScreen extends StatefulWidget {
+
+class HomeScreen extends StatelessWidget {
   const HomeScreen({Key? key}) : super(key: key);
 
-  @override
-  State<HomeScreen> createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends State<HomeScreen> {
-  Widget _buildTopButton(BuildContext context, String text, int index, IconData icon) {
-      final nav = context.watch<NavigationProvider>();
-      final isActive = nav.currentIndex == index;
-      return GestureDetector(
-        onTap: () {
-          // Меняем индекс в провайдере, а не локально
-          context.read<NavigationProvider>().setIndex(index);
-        },
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          decoration: BoxDecoration(
-            color: isActive ? AppTheme.accent.withOpacity(0.2) : Colors.transparent,
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Row(
-            children: [
-              Icon(icon,
-                  color: isActive ? AppTheme.accent : AppTheme.textPrimary,
-                  size: 18),
-              const SizedBox(width: 8),
-              Text(text,
-                  style: TextStyle(
-                      color: isActive ? AppTheme.accent : AppTheme.textPrimary)),
-            ],
-          ),
-        ),
-      );
-    }
-     Widget _buildTopIcon(BuildContext context, IconData icon, String label, int index) {
-    final nav = context.watch<NavigationProvider>();
-    final isActive = nav.currentIndex == index;
-    return GestureDetector(
-      onTap: () {
-        context.read<NavigationProvider>().setIndex(index);
-      },
-      child: Column(
-        children: [
-          Icon(icon, color: isActive ? AppTheme.accent : AppTheme.textPrimary),
-          const SizedBox(height: 4),
-          Text(label,
-              style: TextStyle(
-                  fontSize: 10,
-                  color: isActive ? AppTheme.accent : AppTheme.textSecondary)),
-        ],
-      ),
-    );
-  }
   @override
   Widget build(BuildContext context) {
     final allTracks = context.watch<PlayerProvider>().allTracks;
@@ -90,10 +38,7 @@ class _HomeScreenState extends State<HomeScreen> {
               const SizedBox(height: 8),
               Text(
                 'Some worlds are\nheard before they\'re\nseen.',
-                style: Theme.of(context)
-                    .textTheme
-                    .displayLarge
-                    ?.copyWith(fontSize: 48),
+                style: Theme.of(context).textTheme.displayLarge?.copyWith(fontSize: 48),
               ),
               const SizedBox(height: 16),
               const Text(
@@ -108,30 +53,24 @@ class _HomeScreenState extends State<HomeScreen> {
                     icon: const Icon(PhosphorIconsFill.play, color: Colors.black),
                     label: const Text(
                       'Listen to the score',
-                      style: TextStyle(
-                          color: Colors.black, fontWeight: FontWeight.bold),
+                      style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
                     ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppTheme.accent,
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 24, vertical: 16),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8)),
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 40),
 
-              // --- Секция "Worth getting lost in" ---
+              // --- Секция "Worth getting lost in" (без зазоров) ---
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text('Worth getting lost in.',
-                      style: Theme.of(context)
-                          .textTheme
-                          .headlineMedium
-                          ?.copyWith(fontSize: 24)),
+                      style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontSize: 24)),
                   const Icon(PhosphorIconsRegular.arrowRight, size: 20),
                 ],
               ),
@@ -140,15 +79,14 @@ class _HomeScreenState extends State<HomeScreen> {
                 height: 280,
                 child: ListView.builder(
                   scrollDirection: Axis.horizontal,
+                  padding: EdgeInsets.zero, //   убираем горизонтальные отступы
                   itemCount: allTracks.length,
                   itemBuilder: (context, index) {
                     return Padding(
-                      padding: const EdgeInsets.only(right: 16.0),
+                      padding: EdgeInsets.only(right: index == allTracks.length - 1 ? 0 : 12.0), //   зазор только между треками
                       child: SizedBox(
                         width: 150,
-                        child: TrackCard(
-                          track: allTracks[index],
-                        ),
+                        child: TrackCard(track: allTracks[index]),
                       ),
                     );
                   },
@@ -156,50 +94,112 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               const SizedBox(height: 40),
 
-              // --- Секция "Find your feeling" ---
+              // --- Секция "Find your feeling" (несколько карточек) ---
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text('Find your feeling.',
-                      style: Theme.of(context)
-                          .textTheme
-                          .headlineMedium
-                          ?.copyWith(fontSize: 24)),
-                  const Text('All moods',
-                      style: TextStyle(color: AppTheme.accent, fontSize: 12)),
+                      style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontSize: 24)),
+                  const Text('All moods', style: TextStyle(color: AppTheme.accent, fontSize: 12)),
                 ],
               ),
               const SizedBox(height: 16),
-              Container(
-                height: 120,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  image: const DecorationImage(
-                    image: AssetImage('assets/images/dune.jpg'),
-                    fit: BoxFit.cover,
-                    colorFilter: ColorFilter.mode(Colors.black54, BlendMode.darken),
-                  ),
-                ),
-                padding: const EdgeInsets.all(16),
-                alignment: Alignment.bottomLeft,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
-                    Text('Neon solitude',
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold)),
-                    Text('For the city after everyone leaves.',
-                        style: TextStyle(color: Colors.white70, fontSize: 12)),
+              SizedBox(
+                height: 160,
+                child: ListView(
+                  scrollDirection: Axis.horizontal,
+                  padding: EdgeInsets.zero,
+                  children: [
+                    _buildMoodCard('Neon solitude', 'For the city after everyone leaves.', 'assets/images/dune.jpg'),
+                    const SizedBox(width: 12),
+                    _buildMoodCard('A little wonder', 'Stay curious. Let the world get bigger.', 'assets/images/spirited_away.jpg'),
+                    const SizedBox(width: 12),
+                    _buildMoodCard('Beyond the known', 'Big skies. Bigger possibilities.', 'assets/images/interstellar.jpg'),
                   ],
                 ),
+              ),
+              const SizedBox(height: 40),
+
+              // --- Секция "On repeat, for a reason" (треки без зазоров) ---
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('On repeat, for a reason.',
+                      style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontSize: 24)),
+                  const Text('View all tracks', style: TextStyle(color: AppTheme.accent, fontSize: 12)),
+                ],
+              ),
+              const SizedBox(height: 16),
+              // Список треков вплотную (без отступов между строками)
+              Column(
+                children: allTracks.take(5).map((track) {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0), //   только вертикальный отступ
+                    child: Row(
+                      children: [
+                        SizedBox(
+                          width: 24,
+                          child: Text(
+                            (allTracks.indexOf(track) + 1).toString().padLeft(2, '0'),
+                            style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(track.title, style: const TextStyle(color: AppTheme.textPrimary, fontWeight: FontWeight.w600)),
+                              const SizedBox(height: 2),
+                              Text('${track.artist} · ${track.albumTitle}', style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
+                            ],
+                          ),
+                        ),
+                        IconButton(
+                          icon: Icon(
+                            context.watch<PlayerProvider>().isFavorite(track.id)
+                                ? PhosphorIconsFill.heart
+                                : PhosphorIconsRegular.heart,
+                            color: AppTheme.accent,
+                            size: 20,
+                          ),
+                          onPressed: () => context.read<PlayerProvider>().toggleFavorite(track.id),
+                        ),
+                        Text(track.formattedDuration, style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
+                      ],
+                    ),
+                  );
+                }).toList(),
               ),
               const SizedBox(height: 120),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildMoodCard(String title, String subtitle, String imagePath) {
+    return Container(
+      width: 240,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        image: DecorationImage(
+          image: AssetImage(imagePath),
+          fit: BoxFit.cover,
+          colorFilter: const ColorFilter.mode(Colors.black54, BlendMode.darken),
+        ),
+      ),
+      padding: const EdgeInsets.all(16),
+      alignment: Alignment.bottomLeft,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.end,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(title, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 4),
+          Text(subtitle, style: const TextStyle(color: Colors.white70, fontSize: 12)),
+        ],
       ),
     );
   }

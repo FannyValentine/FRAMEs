@@ -14,6 +14,11 @@ import 'screens/favorites_screen.dart';
 import 'screens/recently_played_screen.dart';
 import 'widgets/mini_player.dart';
 import 'screens/listening_room_screen.dart';
+import 'screens/film_screen.dart';
+import 'screens/anime_screen.dart';
+import 'screens/animation_screen.dart';
+import 'screens/create_playlist_screen.dart';
+import 'screens/playlists_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -83,12 +88,17 @@ class MainWrapper extends StatefulWidget {
 
 class _MainWrapperState extends State<MainWrapper> {
   final List<Widget> _screens = const [
-    HomeScreen(),
-    BrowseScreen(),
-    SavedSoundtracksScreen(),
-    ListeningRoomScreen(),
-    FavoritesScreen(),
-    RecentlyPlayedScreen(),
+    HomeScreen(),              // 0: Discover
+    BrowseScreen(),            // 1: Browse
+    ListeningRoomScreen(),     // 2: Listening Room
+    FilmScreen(),              // 3: Film
+    AnimeScreen(),             // 4: Anime
+    AnimationScreen(),         // 5: Animation 
+    SavedSoundtracksScreen(),  // 6: Saved
+    FavoritesScreen(),         // 7: Favorites
+    RecentlyPlayedScreen(),    // 8: Recently played
+    CreatePlaylistScreen(),    // 9: Create playlist
+    PlaylistsScreen(),
   ];
 
   @override

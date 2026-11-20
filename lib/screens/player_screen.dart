@@ -181,7 +181,7 @@ class PlayerScreen extends StatelessWidget {
                 const Icon(PhosphorIconsRegular.shuffle, color: AppTheme.textSecondary, size: 24),
                 IconButton(
                   icon: const Icon(PhosphorIconsRegular.skipBack, size: 32),
-                  onPressed: () => context.read<PlayerProvider>().playPrevious(), // 👈
+                  onPressed: () => context.read<PlayerProvider>().playPrevious(), //  
                 ),
                 GestureDetector(
                   onTap: () => context.read<PlayerProvider>().togglePlayPause(),
@@ -201,7 +201,7 @@ class PlayerScreen extends StatelessWidget {
                 ),
                 IconButton(
                   icon: const Icon(PhosphorIconsRegular.skipForward, size: 32),
-                  onPressed: () => context.read<PlayerProvider>().playNext(), // 👈
+                  onPressed: () => context.read<PlayerProvider>().playNext(), //  
                 ),
                 const Icon(PhosphorIconsRegular.repeat, color: AppTheme.textSecondary, size: 24),
               ],

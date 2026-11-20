@@ -19,8 +19,11 @@ class TrackCard extends StatelessWidget {
     final isSaved = provider.isSaved(track.id);
 
     return GestureDetector(
-      onTap: () => context.read<PlayerProvider>().playTrack(track),
-      // 👇 ВОТ СЮДА вставляется фрагмент — это child у GestureDetector
+      onTap: () {
+        provider.clearQueue();       // используем тот же provider
+        provider.playTrack(track);
+      },
+      //   ВОТ СЮДА вставляется фрагмент — это child у GestureDetector
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,

@@ -5,6 +5,7 @@ import '../providers/player_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/cover_image.dart';
 import '../widgets/top_navigation_bar.dart';
+import '../widgets/user_avatar.dart';
 class RecentlyPlayedScreen extends StatelessWidget {
   const RecentlyPlayedScreen({Key? key}) : super(key: key);
 
@@ -26,7 +27,7 @@ class RecentlyPlayedScreen extends StatelessWidget {
         ),
         actions: [
           const SizedBox(width: 16),
-          CircleAvatar(backgroundColor: AppTheme.accent.withOpacity(0.2), child: const Text('AK', style: TextStyle(color: AppTheme.accent, fontSize: 12))),
+          const UserAvatar(),
           const SizedBox(width: 16),
         ],
       ),

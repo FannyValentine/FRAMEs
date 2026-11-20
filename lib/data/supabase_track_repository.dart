@@ -8,11 +8,11 @@ class SupabaseTrackRepository {
   Future<List<Track>> fetchAllTracks() async {
     try {
       final response = await _client
-          .from(_tableName)
-          .select()
-          .order('created_at', ascending: false);
+        .from('tracks')
+        .select('*, genres(name)') // Выбираем жанры
+        .order('created_at', ascending: false);
       return (response as List)
-          .map((json) => _mapToTrack(json as Map<String, dynamic>))
+          .map((json) => mapToTrack(json as Map<String, dynamic>))
           .toList();
     } on PostgrestException catch (e) {
       print('Ошибка БД (fetchAllTracks): ${e.message}');
@@ -28,7 +28,7 @@ class SupabaseTrackRepository {
           .eq('id', id)
           .maybeSingle();
       if (response == null) return null;
-      return _mapToTrack(response);
+      return mapToTrack(response);
     } on PostgrestException catch (e) {
       print('Ошибка БД (fetchTrackById): ${e.message}');
       rethrow;
@@ -43,7 +43,7 @@ class SupabaseTrackRepository {
           .or('title.ilike.%$query%,artist.ilike.%$query%,album_title.ilike.%$query%')
           .order('created_at', ascending: false);
       return (response as List)
-          .map((json) => _mapToTrack(json as Map<String, dynamic>))
+          .map((json) => mapToTrack(json as Map<String, dynamic>))
           .toList();
     } on PostgrestException catch (e) {
       print('Ошибка БД (searchTracks): ${e.message}');
@@ -58,7 +58,7 @@ class SupabaseTrackRepository {
           .insert(_trackToMap(track))
           .select()
           .single();
-      return _mapToTrack(response);
+      return mapToTrack(response);
     } on PostgrestException catch (e) {
       print('Ошибка БД (createTrack): ${e.message}');
       rethrow;
@@ -73,7 +73,7 @@ class SupabaseTrackRepository {
           .eq('id', track.id)
           .select()
           .single();
-      return _mapToTrack(response);
+      return mapToTrack(response);
     } on PostgrestException catch (e) {
       print('Ошибка БД (updateTrack): ${e.message}');
       rethrow;
@@ -93,7 +93,12 @@ class SupabaseTrackRepository {
   // МАППИНГ
   // ============================================================
 
-  Track _mapToTrack(Map<String, dynamic> json) {
+  Track mapToTrack(Map<String, dynamic> json) {
+  // Извлекаем имя жанра из вложенного объекта
+  String? genreName;
+  if (json['genres'] != null && json['genres'] is Map) {
+    genreName = json['genres']['name'] as String?;
+  }
   return Track(
     id: json['id'].toString(),
     title: json['title'] as String? ?? 'Без названия',
@@ -103,7 +108,7 @@ class SupabaseTrackRepository {
     imageUrl: json['cover_url'] as String? ?? '',
     audioUrl: json['audio_url'] as String,
     world: _parseWorld(json['world'] as String?),
-    genre: json['genre'] as String?,
+    genre: genreName,
   );
 }
 
